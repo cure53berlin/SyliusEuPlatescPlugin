@@ -5,7 +5,6 @@
         <defaults public="true" autoconfigure="false" autowire="false"/>
 
         <service id="infifni.euplatesc_plugin.action.capture" class="Infifni\SyliusEuPlatescPlugin\Payum\Action\CaptureAction">
-            <argument type="service" id="sylius.repository.country"/>
             <tag name="payum.action" factory="euplatesc" alias="payum.action.capture"/>
         </service>
 
