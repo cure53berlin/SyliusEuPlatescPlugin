@@ -3,6 +3,6 @@ infifni:
         environment: Mediu
         secure: Producție
         sandbox: Test
-        key: Cheie primită de la EuPlătesc (pentru mediu Test nu șterge valoarea existentă)
+        merchant_key: Cheie primită de la EuPlătesc (pentru mediu Test nu șterge valoarea existentă)
         merchant_id: Identificator comerciant primit de la EuPlătesc (pentru mediu Test nu șterge valoarea existentă)
         gateway_label: EuPlătesc

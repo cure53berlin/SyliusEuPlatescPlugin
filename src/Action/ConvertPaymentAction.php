@@ -10,49 +10,62 @@
 
 declare(strict_types=1);
 
-namespace Infifni\SyliusEuPlatescPlugin\Payum\Action;
+namespace Infifni\SyliusEuPlatescPlugin\Action;
 
-use Infifni\SyliusEuPlatescPlugin\Payum\SyliusApi;
-use Infifni\SyliusEuPlatescPlugin\Utils\EuPlatescHelper;
+use Infifni\SyliusEuPlatescPlugin\Bridge\EuPlatescBridgeInterface;
 use Payum\Core\Action\ActionInterface;
 use Payum\Core\ApiAwareInterface;
 use Payum\Core\Exception\RequestNotSupportedException;
 use Payum\Core\Exception\UnsupportedApiException;
-use Payum\Core\Reply\HttpPostRedirect;
 use Sylius\Component\Core\Model\AddressInterface;
 use Sylius\Component\Core\Model\CustomerInterface;
-use Sylius\Component\Core\Model\OrderInterface;
 use Sylius\Component\Core\Model\PaymentInterface;
-use Payum\Core\Request\Capture;
+use Payum\Core\Request\Convert;
+use Sylius\Component\Core\Model\OrderInterface;
 use Webmozart\Assert\Assert;
 
-final class CaptureAction implements ActionInterface, ApiAwareInterface
+final class ConvertPaymentAction implements ActionInterface, ApiAwareInterface
 {
-    /** @var SyliusApi */
-    private $api;
+    /**
+     * @var EuPlatescBridgeInterface
+     */
+    private $euPlatescBridge;
 
+    public function __construct(EuPlatescBridgeInterface $euPlatescBridge)
+    {
+        $this->euPlatescBridge = $euPlatescBridge;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function setApi($api): void
+    {
+        if (false === is_array($api)) {
+            throw new UnsupportedApiException('Not supported. Expected to be set as array.');
+        }
+
+        $this->euPlatescBridge->setAuthorizationData($api['merchantId'], $api['merchantKey']);
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * @param Convert $request
+     */
     public function execute($request): void
     {
         RequestNotSupportedException::assertSupports($this, $request);
+
         /** @var PaymentInterface $payment */
-        $payment = $request->getModel();
+        $payment = $request->getSource();
         /** @var OrderInterface $order */
-        $order = $request->getFirstModel()->getOrder();
+        $order = $payment->getOrder();
 
-        throw new HttpPostRedirect(
-            SyliusApi::PAYMENT_URL,
-            $this->prepareOrder($order, $payment)
-        );
+        $request->setResult($this->getPaymentData($order, $payment));
     }
 
-    public function supports($request): bool
-    {
-        return
-            $request instanceof Capture &&
-            $request->getModel() instanceof PaymentInterface;
-    }
-
-    private function prepareOrder(OrderInterface $order, PaymentInterface $payment)
+    private function getPaymentData(OrderInterface $order, PaymentInterface $payment)
     {
         /** @var CustomerInterface $customer */
         $customer = $order->getCustomer();
@@ -91,15 +104,15 @@ final class CaptureAction implements ActionInterface, ApiAwareInterface
         ];
 
         $hashData = [
-            'amount' => $payment->getAmount(),
+            'amount' => $payment->getAmount() / 100,
             'curr' => $payment->getCurrencyCode(),
             'invoice_id' => $payment->getId(),
             'order_desc' => 'Order ' . $order->getNumber() . ' with ' . $order->getItems()->count() . ' items.',
-            'merch_id' => $this->api->getMerchantId(),
+            'merch_id' => $this->euPlatescBridge->getMerchantId(),
             'timestamp' => gmdate('YmdHis'),
             'nonce' => md5(microtime() . mt_rand()),
         ];
-        $hashData['fp_hash'] = strtoupper(EuPlatescHelper::macFormat($hashData, $this->api->getKey()));
+        $hashData['fp_hash'] = $this->euPlatescBridge->macFormat($hashData);
 
         $paymentData = array_merge($paymentData, $hashData);
 
@@ -131,14 +144,15 @@ final class CaptureAction implements ActionInterface, ApiAwareInterface
     }
 
     /**
-     * {@inheritdoc}
+     * @param mixed $request
+     *
+     * @return boolean
      */
-    public function setApi($api): void
+    public function supports($request): bool
     {
-        if (!$api instanceof SyliusApi) {
-            throw new UnsupportedApiException('Not supported. Expected an instance of ' . SyliusApi::class);
-        }
-
-        $this->api = $api;
+        return
+            $request instanceof Convert &&
+            $request->getSource() instanceof PaymentInterface &&
+            $request->getTo() === 'array';
     }
 }

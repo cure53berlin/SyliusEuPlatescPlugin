@@ -5,8 +5,8 @@
     "description": "EuPlatesc payment plugin for Sylius applications",
     "license": "MIT",
     "require": {
+        "ext-json": "*",
         "php": "^7.2",
-
         "sylius/sylius": "^1.6"
     },
     "require-dev": {

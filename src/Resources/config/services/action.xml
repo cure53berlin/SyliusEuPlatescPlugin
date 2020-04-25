@@ -4,12 +4,22 @@
 
         <defaults public="true" autoconfigure="false" autowire="false"/>
 
-        <service id="infifni.euplatesc_plugin.action.capture" class="Infifni\SyliusEuPlatescPlugin\Payum\Action\CaptureAction">
+        <service id="infifni.euplatesc_plugin.action.capture" class="Infifni\SyliusEuPlatescPlugin\Action\CaptureAction">
             <tag name="payum.action" factory="euplatesc" alias="payum.action.capture"/>
         </service>
 
-        <service id="infifni.euplatesc_plugin.action.status" class="Infifni\SyliusEuPlatescPlugin\Payum\Action\StatusAction">
+        <service id="infifni.euplatesc_plugin.action.notify" class="Infifni\SyliusEuPlatescPlugin\Action\NotifyAction">
+            <argument type="service" id="infifni.euplatesc_plugin.bridge.euplatesc"/>
+            <tag name="payum.action" factory="euplatesc" alias="payum.action.notify"/>
+        </service>
+
+        <service id="infifni.euplatesc_plugin.action.status" class="Infifni\SyliusEuPlatescPlugin\Action\StatusAction">
             <tag name="payum.action" factory="euplatesc" alias="payum.action.status"/>
+        </service>
+
+        <service id="infifni.euplatesc_plugin.action.convert_payment" class="Infifni\SyliusEuPlatescPlugin\Action\ConvertPaymentAction">
+            <argument type="service" id="infifni.euplatesc_plugin.bridge.euplatesc"/>
+            <tag name="payum.action" factory="euplatesc" alias="payum.action.convert_payment"/>
         </service>
 
     </services>

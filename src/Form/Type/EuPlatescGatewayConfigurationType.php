@@ -12,7 +12,7 @@ declare(strict_types=1);
 
 namespace Infifni\SyliusEuPlatescPlugin\Form\Type;
 
-use Infifni\SyliusEuPlatescPlugin\Payum\SyliusApi;
+use Infifni\SyliusEuPlatescPlugin\Bridge\EuPlatescBridgeInterface;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
@@ -28,7 +28,7 @@ final class EuPlatescGatewayConfigurationType extends AbstractType
     /**
      * {@inheritdoc}
      */
-    public function buildForm(FormBuilderInterface $builder, array $options)
+    public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
             ->add(
@@ -36,8 +36,8 @@ final class EuPlatescGatewayConfigurationType extends AbstractType
                 ChoiceType::class,
                 [
                     'choices' => [
-                        'infifni.euplatesc_plugin.sandbox' => SyliusApi::SANDBOX_ENVIRONMENT,
-                        'infifni.euplatesc_plugin.secure' => SyliusApi::SECURE_ENVIRONMENT,
+                        'infifni.euplatesc_plugin.sandbox' => EuPlatescBridgeInterface::TEST_ENVIRONMENT,
+                        'infifni.euplatesc_plugin.secure' => EuPlatescBridgeInterface::LIVE_ENVIRONMENT,
                     ],
                     'label' => 'infifni.euplatesc_plugin.environment',
                 ]
@@ -55,23 +55,23 @@ final class EuPlatescGatewayConfigurationType extends AbstractType
                             ]
                         )
                     ],
-                    'data' => SyliusApi::SANDBOX_MERCHANT_ID,
+                    'data' => EuPlatescBridgeInterface::TEST_MERCHANT_ID,
                 ]
             )
             ->add(
-                'key',
+                'merchantKey',
                 TextType::class,
                 [
-                    'label' => 'infifni.euplatesc_plugin.key',
+                    'label' => 'infifni.euplatesc_plugin.merchant_key',
                     'constraints' => [
                         new NotBlank(
                             [
-                                'message' => 'infifni.euplatesc_plugin.gateway_configuration.key.not_blank',
+                                'message' => 'infifni.euplatesc_plugin.gateway_configuration.merchant_key.not_blank',
                                 'groups' => ['sylius'],
                             ]
                         ),
                     ],
-                    'data' => SyliusApi::SANDBOX_KEY,
+                    'data' => EuPlatescBridgeInterface::TEST_KEY,
                 ]
             );
 
@@ -85,7 +85,7 @@ final class EuPlatescGatewayConfigurationType extends AbstractType
     {
         $formData = $event->getData();
         $form = $event->getForm();
-        if (SyliusApi::SANDBOX_ENVIRONMENT === $formData['environment']) {
+        if (EuPlatescBridgeInterface::TEST_ENVIRONMENT === $formData['environment']) {
             $form
                 ->add(
                     'merchantId',
@@ -94,33 +94,33 @@ final class EuPlatescGatewayConfigurationType extends AbstractType
                         'label' => 'infifni.euplatesc_plugin.merchant_id',
                         'constraints' => [
                             new EqualTo([
-                                'value' => SyliusApi::SANDBOX_MERCHANT_ID,
+                                'value' => EuPlatescBridgeInterface::TEST_MERCHANT_ID,
                                 'groups' => ['sylius'],
                             ])
                         ]
                     ]
                 )
                 ->add(
-                    'key',
+                    'merchantKey',
                     TextType::class,
                     [
-                        'label' => 'infifni.euplatesc_plugin.key',
+                        'label' => 'infifni.euplatesc_plugin.merchant_key',
                         'constraints' => [
                             new NotBlank(
                                 [
-                                    'message' => 'infifni.euplatesc_plugin.gateway_configuration.key.not_blank',
+                                    'message' => 'infifni.euplatesc_plugin.gateway_configuration.merchant_key.not_blank',
                                     'groups' => ['sylius'],
                                 ]
                             ),
                             new EqualTo([
-                                'value' => SyliusApi::SANDBOX_KEY,
+                                'value' => EuPlatescBridgeInterface::TEST_KEY,
                                 'groups' => ['sylius'],
                             ])
                         ]
                     ]
                 );
         }
-        if (SyliusApi::SECURE_ENVIRONMENT === $formData['environment']) {
+        if (EuPlatescBridgeInterface::LIVE_ENVIRONMENT === $formData['environment']) {
             $form
                 ->add(
                     'merchantId',
@@ -135,26 +135,26 @@ final class EuPlatescGatewayConfigurationType extends AbstractType
                                 ]
                             ),
                             new NotEqualTo([
-                                'value' => SyliusApi::SANDBOX_MERCHANT_ID,
+                                'value' => EuPlatescBridgeInterface::TEST_MERCHANT_ID,
                                 'groups' => ['sylius'],
                             ])
                         ]
                     ]
                 )
                 ->add(
-                    'key',
+                    'merchantKey',
                     TextType::class,
                     [
-                        'label' => 'infifni.euplatesc_plugin.key',
+                        'label' => 'infifni.euplatesc_plugin.merchant_key',
                         'constraints' => [
                             new NotBlank(
                                 [
-                                    'message' => 'infifni.euplatesc_plugin.gateway_configuration.key.not_blank',
+                                    'message' => 'infifni.euplatesc_plugin.gateway_configuration.merchant_key.not_blank',
                                     'groups' => ['sylius'],
                                 ]
                             ),
                             new NotEqualTo([
-                                'value' => SyliusApi::SANDBOX_KEY,
+                                'value' => EuPlatescBridgeInterface::TEST_KEY,
                                 'groups' => ['sylius'],
                             ])
                         ]

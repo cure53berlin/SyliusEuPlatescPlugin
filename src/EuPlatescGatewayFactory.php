@@ -12,7 +12,7 @@ declare(strict_types=1);
 
 namespace Infifni\SyliusEuPlatescPlugin;
 
-use Infifni\SyliusEuPlatescPlugin\Payum\SyliusApi;
+use Infifni\SyliusEuPlatescPlugin\Bridge\EuPlatescBridgeInterface;
 use Payum\Core\Bridge\Spl\ArrayObject;
 use Payum\Core\GatewayFactory;
 
@@ -23,28 +23,28 @@ final class EuPlatescGatewayFactory extends GatewayFactory
         $config->defaults(
             [
                 'euplatesc.factory_name' => 'euplatesc',
-                'euplatesc.factory_title' => 'euplatesc',
+                'euplatesc.factory_title' => 'EuPlătesc',
             ]
         );
 
         if (false === (bool) $config['payum.api']) {
             $config['payum.default_options'] = [
-                'environment' => SyliusApi::SANDBOX_ENVIRONMENT,
-                'merchant_id' => SyliusApi::SANDBOX_MERCHANT_ID,
-                'key' => SyliusApi::SANDBOX_KEY,
+                'environment' => EuPlatescBridgeInterface::TEST_ENVIRONMENT,
+                'merchantId' => EuPlatescBridgeInterface::TEST_MERCHANT_ID,
+                'merchantKey' => EuPlatescBridgeInterface::TEST_KEY,
             ];
             $config->defaults($config['payum.default_options']);
 
-            $config['payum.required_options'] = ['environment', 'merchant_id', 'key'];
+            $config['payum.required_options'] = ['environment', 'merchantId', 'merchantKey'];
 
-            $config['payum.api'] = static function (ArrayObject $config): SyliusApi {
+            $config['payum.api'] = static function (ArrayObject $config): array {
                 $config->validateNotEmpty($config['payum.required_options']);
 
-                return new SyliusApi(
-                    $config['environment'],
-                    $config['merchant_id'],
-                    $config['key']
-                );
+                return [
+                    'environment' => $config['environment'],
+                    'merchantId' => $config['merchantId'],
+                    'merchantKey' => $config['merchantKey']
+                ];
             };
         }
     }

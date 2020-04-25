@@ -3,5 +3,5 @@ infifni:
         gateway_configuration:
             merchant_id:
                 not_blank: Merchant identifier from EuPlatesc has not been provided.
-            key:
+            merchant_key:
                 not_blank: Key from EuPlatesc has not been provided.
